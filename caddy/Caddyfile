@@ -9,7 +9,7 @@
     reverse_proxy cadvisor:8080
 }
 
-:9090 {
+:9093 {
     basicauth /* {
         {$ADMIN_USER} {$ADMIN_PASSWORD_HASH}
     }
