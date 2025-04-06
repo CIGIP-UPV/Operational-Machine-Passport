@@ -1,0 +1,122 @@
+{
+  "id": null,
+  "title": "CNC Machine - OPC-UA Monitor",
+  "tags": ["opcua", "cnc", "prometheus"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Spindle Temperature (°C)",
+      "id": 1,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "SpindleTemperature_ns_2_s_Sensors_SpindleTemperature",
+          "legendFormat": "Spindle Temp",
+          "refId": "A"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "celsius",
+          "label": null,
+          "show": true
+        },
+        {
+          "show": false
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Coolant Level (%)",
+      "id": 2,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "CoolantLevel_ns_2_s_Sensors_CoolantLevel",
+          "legendFormat": "Coolant Level",
+          "refId": "B"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "percent",
+          "show": true
+        },
+        {
+          "show": false
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Vibration Level (mm/s)",
+      "id": 3,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "VibrationLevel_ns_2_s_Sensors_VibrationLevel",
+          "legendFormat": "Vibration",
+          "refId": "C"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "short",
+          "show": true
+        },
+        {
+          "show": false
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Parts Produced",
+      "id": 4,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "PartsProduced_ns_2_s_Production_PartsProduced",
+          "legendFormat": "Parts",
+          "refId": "D"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "short",
+          "show": true
+        },
+        {
+          "show": false
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Tool Wear (%)",
+      "id": 5,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "ToolWear_ns_2_s_Production_ToolWear",
+          "legendFormat": "Tool Wear",
+          "refId": "E"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "percent",
+          "show": true
+        },
+        {
+          "show": false
+        }
+      ]
+    }
+  ]
+}

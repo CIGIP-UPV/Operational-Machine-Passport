@@ -49,8 +49,9 @@ services:
 
 
   cadvisor:
-    image: google/cadvisor:v0.33.0
+    image: google/cadvisor:canary
     container_name: cadvisor
+    platform: linux/amd64
     privileged: true
     devices:
       - /dev/kmsg:/dev/kmsg
@@ -110,6 +111,28 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
       - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH:-$2a$14$1l.IozJx7xQRVmlkEQ32OeEEfP5mRxTpbDTCTcXRqn19gXD8YK1pO}
     restart: unless-stopped
+    networks:
+      - monitor-net-aideas
+
+  opcua-simulator:
+    image:  gitlab-cigip.alc.upv.es:5050/aideas/tools/monitoring/demo-ua:1.0
+    container_name: opcua_simulator
+    ports:
+      - "4840:4840"
+    restart: always
+    networks:
+      - monitor-net-aideas
+
+  opcua-exporter:
+    image:  gitlab-cigip.alc.upv.es:5050/aideas/tools/monitoring/exporter-ua:1.0
+    container_name: opcua_exporter
+    ports:
+      - "9687:9687"
+    environment:
+      - OPCUA_ENDPOINT=opc.tcp://opcua-simulator:4840/freeopcua/cnc/
+    restart: always
+    depends_on:
+      - opcua-simulator
     networks:
       - monitor-net-aideas
 

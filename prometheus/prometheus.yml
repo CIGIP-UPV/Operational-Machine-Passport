@@ -29,6 +29,9 @@ scrape_configs:
     static_configs:
       - targets: ['pushgateway:9091']
 
+  - job_name: "opcua"
+    static_configs:
+      - targets: ["opcua-exporter:9686"]
 
 #alerting:
 #  alertmanagers:
