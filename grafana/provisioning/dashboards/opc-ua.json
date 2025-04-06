@@ -1,122 +1,71 @@
 {
   "id": null,
-  "title": "CNC Machine - OPC-UA Monitor",
-  "tags": ["opcua", "cnc", "prometheus"],
+  "title": "OPC UA Genérico - Variables dinámicas",
+  "tags": ["opcua", "prometheus", "dynamic"],
   "timezone": "browser",
   "schemaVersion": 36,
   "version": 1,
   "refresh": "5s",
+  "templating": {
+    "list": [
+      {
+        "name": "display_name",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PROMETHEUS_DS_UID"
+        },
+        "refresh": 2,
+        "query": "label_values(opcua_node_value, display_name)",
+        "multi": true,
+        "includeAll": false,
+        "sort": 1
+      }
+    ]
+  },
   "panels": [
     {
-      "type": "graph",
-      "title": "Spindle Temperature (°C)",
+      "type": "timeseries",
+      "title": "$display_name",
       "id": 1,
-      "datasource": "Prometheus",
+      "repeat": "display_name",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PROMETHEUS_DS_UID"
+      },
       "targets": [
         {
-          "expr": "SpindleTemperature_ns_2_s_Sensors_SpindleTemperature",
-          "legendFormat": "Spindle Temp",
-          "refId": "A"
+          "expr": "opcua_node_value{display_name=\"$display_name\"}",
+          "refId": "A",
+          "legendFormat": "{{nodeid}}"
         }
       ],
-      "yaxes": [
-        {
-          "format": "celsius",
-          "label": null,
-          "show": true
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2
         },
-        {
-          "show": false
-        }
-      ]
-    },
-    {
-      "type": "graph",
-      "title": "Coolant Level (%)",
-      "id": 2,
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "CoolantLevel_ns_2_s_Sensors_CoolantLevel",
-          "legendFormat": "Coolant Level",
-          "refId": "B"
-        }
-      ],
-      "yaxes": [
-        {
-          "format": "percent",
-          "show": true
-        },
-        {
-          "show": false
-        }
-      ]
-    },
-    {
-      "type": "graph",
-      "title": "Vibration Level (mm/s)",
-      "id": 3,
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "VibrationLevel_ns_2_s_Sensors_VibrationLevel",
-          "legendFormat": "Vibration",
-          "refId": "C"
-        }
-      ],
-      "yaxes": [
-        {
-          "format": "short",
-          "show": true
-        },
-        {
-          "show": false
-        }
-      ]
-    },
-    {
-      "type": "graph",
-      "title": "Parts Produced",
-      "id": 4,
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "PartsProduced_ns_2_s_Production_PartsProduced",
-          "legendFormat": "Parts",
-          "refId": "D"
-        }
-      ],
-      "yaxes": [
-        {
-          "format": "short",
-          "show": true
-        },
-        {
-          "show": false
-        }
-      ]
-    },
-    {
-      "type": "graph",
-      "title": "Tool Wear (%)",
-      "id": 5,
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "ToolWear_ns_2_s_Production_ToolWear",
-          "legendFormat": "Tool Wear",
-          "refId": "E"
-        }
-      ],
-      "yaxes": [
-        {
-          "format": "percent",
-          "show": true
-        },
-        {
-          "show": false
-        }
-      ]
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      }
     }
-  ]
+  ],
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ]
+  }
 }
