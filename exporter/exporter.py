@@ -12,9 +12,12 @@ logger = logging.getLogger("opcua_exporter")
 OPCUA_ENDPOINT = os.getenv("OPCUA_ENDPOINT", "opc.tcp://0.0.0.0:4840/freeopcua/server:4840/freeopcua/cnc/")
 EXPORTER_PORT = int(os.getenv("EXPORTER_PORT", "9687"))
 
-# Almacén de métricas
-metrics = {}
-
+# Métrica única y genérica para todos los nodos válidos
+opcua_metric = Gauge(
+    'opcua_node_value',
+    'Valor de nodo OPC-UA',
+    ['display_name', 'nodeid', 'namespace']
+)
 
 async def scrape_opcua():
     async with Client(url=OPCUA_ENDPOINT) as client:
@@ -30,25 +33,21 @@ async def scrape_opcua():
                 try:
                     val = await node.read_value()
                     browse_name = await node.read_browse_name()
-                    nodeid = node.nodeid.to_string()
-
-                    label = f"{browse_name.Name}_{nodeid}".replace(" ", "_") \
-                                                          .replace(";", "_") \
-                                                          .replace("=", "_") \
-                                                          .replace(".", "_") \
-                                                          .replace(":", "_") \
-                                                          .replace("-", "_")
+                    nodeid = node.nodeid
 
                     if isinstance(val, (int, float, bool)):
-                        if label not in metrics:
-                            metrics[label] = Gauge(label, f"OPC-UA variable from {nodeid}")
-                        metrics[label].set(float(val))  # bools también se pueden castear a float (0/1)
+                        display_name = browse_name.Name
+                        opcua_metric.labels(
+                            display_name=display_name,
+                            nodeid=str(nodeid),
+                            namespace=f"ns{nodeid.NamespaceIndex}"
+                        ).set(float(val))
                 except ua.UaStatusCodeError:
-                    pass  # Sin valor
+                    pass
                 except Exception as e:
-                    logger.warning(f"Error leyendo valor del nodo: {e}")
+                    logger.warning(f"Error leyendo nodo: {e}")
             except Exception as e:
-                logger.warning(f"Error procesando nodo: {e}")
+                logger.warning(f"Error recursivo en nodo: {e}")
 
         await walk_and_collect(root)
 
@@ -56,14 +55,12 @@ async def scrape_opcua():
 async def loop_scraper():
     while True:
         await scrape_opcua()
-        await asyncio.sleep(2)  # Intervalo de scraping
-
+        await asyncio.sleep(2)
 
 def main():
-    logger.info(f"Iniciando Prometheus Exporter en puerto {EXPORTER_PORT}")
+    logger.info(f"Iniciando Exporter en puerto {EXPORTER_PORT}")
     start_http_server(EXPORTER_PORT)
     asyncio.run(loop_scraper())
-
 
 if __name__ == "__main__":
     main()
