@@ -6,7 +6,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "exporter"))
+sys.path.insert(0, str(ROOT / "apps" / "industrial-exporter"))
 
 from opcua_exporter.config import load_profile_config
 from opcua_exporter.registry import load_registered_assets

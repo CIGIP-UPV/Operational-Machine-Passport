@@ -5,7 +5,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "analytics"))
+sys.path.insert(0, str(ROOT / "apps" / "analytics"))
 
 from analytics.passport import build_passport
 from analytics.repository import AssetRepository

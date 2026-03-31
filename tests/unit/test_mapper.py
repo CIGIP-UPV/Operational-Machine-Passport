@@ -4,7 +4,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "exporter"))
+sys.path.insert(0, str(ROOT / "apps" / "industrial-exporter"))
 
 from opcua_exporter.mapper import MappingProfile
 from opcua_exporter.models import NodeSample

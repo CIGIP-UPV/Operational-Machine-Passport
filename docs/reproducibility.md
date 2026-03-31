@@ -3,9 +3,10 @@
 The repository is designed so the main artifact can be reproduced from source:
 
 - local Docker builds are used for the simulator, exporter and analytics
-- the baseline scenario is versioned in `opcua-demo/config/scenarios/`
+- the baseline OPC UA scenarios are versioned in `simulators/opcua/config/scenarios/`
+- the MQTT baseline scenarios are versioned in `simulators/mqtt/config/scenarios/`
 - multiple asset scenarios are versioned, including CNC and robot-arm
-- the exporter profile is versioned in `exporter/opcua_exporter/config/profiles/`
+- the exporter profile is versioned in `apps/industrial-exporter/opcua_exporter/config/profiles/`
 - Prometheus and Grafana are provisioned from repository files
 - experiment outputs are generated under `experiments/results/`
 

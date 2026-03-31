@@ -144,22 +144,24 @@ The passport currently covers:
 
 The stack is composed of these main services:
 
-- `opcua-demo/`
-  - OPC UA simulators with reproducible scenarios and ground truth
-- `mqtt-demo/`
-  - MQTT machine simulator with reproducible CNC scenarios
-- `mqtt-broker/`
-  - local Mosquitto broker for the MQTT demo path
-- `exporter/`
-  - industrial semantic exporter for OPC UA and MQTT assets
-- `analytics/`
+- `apps/analytics/`
   - registry, discovery, passport builder, anomaly detection, and HTTP API
-- `ui/`
+- `apps/industrial-exporter/`
+  - industrial semantic exporter for OPC UA and MQTT assets
+- `apps/ui/`
   - React frontend for machine registry, passports, monitor, and diagnose
-- `prometheus/`
+- `simulators/opcua/`
+  - OPC UA simulators with reproducible scenarios and ground truth
+- `simulators/mqtt/`
+  - MQTT machine simulator with reproducible CNC scenarios
+- `infra/mqtt-broker/`
+  - local Mosquitto broker for the MQTT demo path
+- `infra/prometheus/`
   - scraping and alerting rules
-- `grafana/`
+- `infra/grafana/`
   - dashboards for infrastructure and telemetry inspection
+- `infra/caddy/`
+  - reverse proxy and entrypoint for the web surface
 - `experiments/`
   - repeatable experiment runner and evaluation scripts
 - `tests/`
@@ -271,7 +273,7 @@ docker compose logs -f analytics opcua-exporter ui
 ```
 
 ```bash
-npm run build --prefix ui
+npm run build --prefix apps/ui
 ```
 
 ## Research and publication angle

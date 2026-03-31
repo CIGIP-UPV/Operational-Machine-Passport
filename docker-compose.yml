@@ -11,7 +11,7 @@ services:
     image: prom/prometheus:v3.1.0
     container_name: prometheus
     volumes:
-      - ./prometheus:/etc/prometheus
+      - ./infra/prometheus:/etc/prometheus
       - prometheus_data_monitoring:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
@@ -69,8 +69,8 @@ services:
     container_name: grafana
     volumes:
       - grafana_data_monitoring:/var/lib/grafana
-      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./infra/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./infra/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
     environment:
       - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
@@ -96,7 +96,7 @@ services:
     ports:
       - "1884:1883"
     volumes:
-      - ./mqtt-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./infra/mqtt-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     restart: unless-stopped
     networks:
       - monitor-net-aideas
@@ -111,7 +111,7 @@ services:
       - "9093:9090"
       - "9091:9091"
     volumes:
-      - ./caddy:/etc/caddy
+      - ./infra/caddy:/etc/caddy
     environment:
       - ADMIN_USER=${ADMIN_USER:-admin}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
@@ -122,7 +122,7 @@ services:
 
   opcua-simulator:
     build:
-      context: ./opcua-demo
+      context: ./simulators/opcua
     container_name: opcua_simulator
     environment:
       - OPCUA_SCENARIO_FILE=${OPCUA_SCENARIO_FILE:-/app/config/scenarios/cnc_baseline.json}
@@ -142,7 +142,7 @@ services:
 
   opcua-simulator-cnc-02:
     build:
-      context: ./opcua-demo
+      context: ./simulators/opcua
     container_name: opcua_simulator_cnc_02
     environment:
       - OPCUA_SCENARIO_FILE=${OPCUA_SCENARIO_FILE_CNC_02:-/app/config/scenarios/cnc_secondary.json}
@@ -162,7 +162,7 @@ services:
 
   mqtt-simulator-cnc-01:
     build:
-      context: ./mqtt-demo
+      context: ./simulators/mqtt
     container_name: mqtt_simulator_cnc_01
     environment:
       - MQTT_SCENARIO_FILE=${MQTT_SCENARIO_FILE:-/app/config/scenarios/cnc_mqtt_baseline.json}
@@ -178,10 +178,10 @@ services:
 
   opcua-exporter:
     build:
-      context: ./exporter
+      context: ./apps/industrial-exporter
     container_name: opcua_exporter
     volumes:
-      - ./analytics/data:/registry:ro
+      - ./apps/analytics/data:/registry:ro
     ports:
       - "9687:9687"
     environment:
@@ -206,11 +206,11 @@ services:
 
   analytics:
     build:
-      context: ./analytics
+      context: ./apps/analytics
     container_name: analytics
     volumes:
       - ./experiments/results:/data
-      - ./analytics/data:/registry
+      - ./apps/analytics/data:/registry
     environment:
       - PROMETHEUS_URL=${PROMETHEUS_URL:-http://prometheus:9090}
       - ANALYTICS_PORT=${ANALYTICS_PORT:-9700}
@@ -233,7 +233,7 @@ services:
 
   ui:
     build:
-      context: ./ui
+      context: ./apps/ui
     container_name: ui
     expose:
       - "80"
