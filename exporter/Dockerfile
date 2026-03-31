@@ -5,6 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY opcua_exporter ./opcua_exporter
 COPY exporter.py .
 
-CMD ["python", "exporter.py"]
+CMD ["python", "-m", "opcua_exporter.app"]

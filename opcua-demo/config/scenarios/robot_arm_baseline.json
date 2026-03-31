@@ -1,0 +1,241 @@
+{
+  "asset": {
+    "id": "robot-01",
+    "name": "Robot_Arm_01",
+    "type": "robot_arm",
+    "namespace_uri": "http://cigip.example/assets/robot-arm",
+    "endpoint": "opc.tcp://0.0.0.0:4840/freeopcua/assets/"
+  },
+  "runtime": {
+    "seed": 11,
+    "update_interval_seconds": 1
+  },
+  "signals": {
+    "operating_mode": {
+      "path": "Status/OperatingMode",
+      "kind": "string",
+      "initial": "Auto",
+      "modes": {
+        "nominal": {
+          "choices": ["Auto", "Auto", "Auto", "Teach"]
+        },
+        "joint_wear": {
+          "choices": ["Auto", "Derated"]
+        },
+        "controller_instability": {
+          "choices": ["Manual", "Alarm"]
+        }
+      }
+    },
+    "alarm_active": {
+      "path": "Status/AlarmActive",
+      "kind": "bool",
+      "initial": false,
+      "modes": {
+        "nominal": {
+          "true_probability": 0.01
+        },
+        "joint_wear": {
+          "true_probability": 0.1
+        },
+        "controller_instability": {
+          "true_probability": 0.55
+        }
+      }
+    },
+    "joint_temperature": {
+      "path": "Sensors/JointTemperature",
+      "kind": "float",
+      "initial": 52.0,
+      "precision": 2,
+      "modes": {
+        "nominal": {
+          "baseline": 52.0,
+          "noise": 1.8,
+          "min": 44.0,
+          "max": 62.0
+        },
+        "joint_wear": {
+          "baseline": 63.0,
+          "drift_per_step": 0.03,
+          "noise": 2.0,
+          "min": 52.0,
+          "max": 78.0
+        },
+        "controller_instability": {
+          "baseline": 70.0,
+          "drift_per_step": 0.05,
+          "noise": 2.5,
+          "min": 56.0,
+          "max": 90.0
+        }
+      }
+    },
+    "vibration_level": {
+      "path": "Sensors/VibrationLevel",
+      "kind": "float",
+      "initial": 0.012,
+      "precision": 4,
+      "modes": {
+        "nominal": {
+          "baseline": 0.012,
+          "noise": 0.002,
+          "min": 0.006,
+          "max": 0.022
+        },
+        "joint_wear": {
+          "baseline": 0.025,
+          "drift_per_step": 0.0001,
+          "noise": 0.003,
+          "min": 0.01,
+          "max": 0.045
+        },
+        "controller_instability": {
+          "baseline": 0.03,
+          "drift_per_step": 0.00015,
+          "noise": 0.004,
+          "min": 0.015,
+          "max": 0.055
+        }
+      }
+    },
+    "positioning_error": {
+      "path": "Production/PositioningError",
+      "kind": "float",
+      "initial": 0.3,
+      "precision": 3,
+      "modes": {
+        "nominal": {
+          "baseline": 0.3,
+          "noise": 0.08,
+          "min": 0.05,
+          "max": 0.7
+        },
+        "joint_wear": {
+          "baseline": 1.1,
+          "drift_per_step": 0.01,
+          "noise": 0.1,
+          "min": 0.4,
+          "max": 2.5
+        },
+        "controller_instability": {
+          "baseline": 2.2,
+          "drift_per_step": 0.02,
+          "noise": 0.18,
+          "min": 0.8,
+          "max": 4.0
+        }
+      }
+    },
+    "arm_current": {
+      "path": "Energy/ArmCurrent",
+      "kind": "float",
+      "initial": 8.0,
+      "precision": 2,
+      "modes": {
+        "nominal": {
+          "baseline": 8.0,
+          "noise": 0.9,
+          "min": 5.0,
+          "max": 11.0
+        },
+        "joint_wear": {
+          "baseline": 10.5,
+          "noise": 1.2,
+          "min": 7.0,
+          "max": 14.0
+        },
+        "controller_instability": {
+          "baseline": 13.5,
+          "noise": 1.8,
+          "min": 9.0,
+          "max": 18.0
+        }
+      }
+    },
+    "cycle_time": {
+      "path": "Production/CycleTime",
+      "kind": "float",
+      "initial": 16.0,
+      "precision": 2,
+      "modes": {
+        "nominal": {
+          "baseline": 16.0,
+          "noise": 0.7,
+          "min": 13.5,
+          "max": 18.5
+        },
+        "joint_wear": {
+          "baseline": 18.2,
+          "noise": 0.9,
+          "min": 15.0,
+          "max": 21.0
+        },
+        "controller_instability": {
+          "baseline": 21.0,
+          "noise": 1.1,
+          "min": 17.0,
+          "max": 25.0
+        }
+      }
+    },
+    "parts_completed": {
+      "path": "Production/PartsCompleted",
+      "kind": "counter",
+      "initial": 0,
+      "modes": {
+        "nominal": {
+          "increment_mean": 1.0,
+          "increment_noise": 0.1
+        },
+        "joint_wear": {
+          "increment_mean": 0.85,
+          "increment_noise": 0.12
+        },
+        "controller_instability": {
+          "increment_mean": 0.55,
+          "increment_noise": 0.15
+        }
+      }
+    },
+    "total_runtime": {
+      "path": "Production/TotalRuntime",
+      "kind": "counter",
+      "initial": 0,
+      "modes": {
+        "nominal": {
+          "increment_mean": 1.0,
+          "increment_noise": 0.0
+        },
+        "joint_wear": {
+          "increment_mean": 1.0,
+          "increment_noise": 0.0
+        },
+        "controller_instability": {
+          "increment_mean": 1.0,
+          "increment_noise": 0.0
+        }
+      }
+    }
+  },
+  "events": [
+    {
+      "start_at": 0,
+      "end_at": 99,
+      "mode": "nominal",
+      "label": "normal_robot_operation"
+    },
+    {
+      "start_at": 100,
+      "end_at": 199,
+      "mode": "joint_wear",
+      "label": "progressive_joint_wear"
+    },
+    {
+      "start_at": 200,
+      "end_at": 299,
+      "mode": "controller_instability",
+      "label": "controller_instability"
+    }
+  ]
+}

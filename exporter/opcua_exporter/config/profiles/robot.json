@@ -1,0 +1,62 @@
+{
+  "asset_type": "robot_arm",
+  "default_category": "signal",
+  "rules": [
+    {
+      "pattern": "JointTemperature",
+      "category": "sensor",
+      "signal": "joint_temperature",
+      "subsystem": "joint",
+      "unit": "celsius",
+      "criticality": "high"
+    },
+    {
+      "pattern": "VibrationLevel",
+      "category": "sensor",
+      "signal": "vibration_level",
+      "subsystem": "joint",
+      "unit": "g",
+      "criticality": "high"
+    },
+    {
+      "pattern": "PositioningError",
+      "category": "production",
+      "signal": "positioning_error",
+      "subsystem": "motion",
+      "unit": "millimeter",
+      "criticality": "high"
+    },
+    {
+      "pattern": "ArmCurrent",
+      "category": "energy",
+      "signal": "arm_current",
+      "subsystem": "electrical",
+      "unit": "ampere",
+      "criticality": "medium"
+    },
+    {
+      "pattern": "CycleTime",
+      "category": "production",
+      "signal": "cycle_time",
+      "subsystem": "process",
+      "unit": "seconds",
+      "criticality": "medium"
+    },
+    {
+      "pattern": "PartsCompleted",
+      "category": "production",
+      "signal": "parts_completed",
+      "subsystem": "process",
+      "unit": "count",
+      "criticality": "medium"
+    },
+    {
+      "pattern": "EmergencyStop|AlarmActive",
+      "category": "alarm",
+      "signal": "alarm_active",
+      "subsystem": "safety",
+      "unit": "boolean",
+      "criticality": "high"
+    }
+  ]
+}

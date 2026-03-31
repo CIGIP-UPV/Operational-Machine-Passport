@@ -1,0 +1,29 @@
+groups:
+  - name: industrial-observability
+    rules:
+      - alert: OPCUAExporterDown
+        expr: up{job="opcua_exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: OPC UA exporter is down
+          description: Prometheus cannot scrape the OPC UA exporter for more than one minute.
+
+      - alert: SpindleTemperatureHigh
+        expr: asset_sensor_value{signal="spindle_temperature"} > 82
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: Spindle temperature exceeds threshold
+          description: The spindle temperature has remained above 82 degrees Celsius.
+
+      - alert: MonitoringConfidenceLow
+        expr: asset_monitoring_confidence < 0.6
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Monitoring confidence is degraded
+          description: The analytics service has detected observability degradation or mixed causes.

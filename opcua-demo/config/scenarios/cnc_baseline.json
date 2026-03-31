@@ -1,0 +1,362 @@
+{
+  "asset": {
+    "id": "cnc-01",
+    "name": "CNC_Machine_01",
+    "type": "cnc",
+    "namespace_uri": "http://cigip.example/assets/cnc",
+    "endpoint": "opc.tcp://0.0.0.0:4840/freeopcua/assets/"
+  },
+  "runtime": {
+    "seed": 42,
+    "update_interval_seconds": 1
+  },
+  "signals": {
+    "operating_mode": {
+      "path": "Status/OperatingMode",
+      "kind": "string",
+      "initial": "Auto",
+      "modes": {
+        "nominal": {
+          "choices": ["Auto", "Auto", "Auto", "Warmup"]
+        },
+        "tool_wear": {
+          "choices": ["Auto", "Derated"]
+        },
+        "cooling_loss": {
+          "choices": ["Derated", "Alarm"]
+        }
+      }
+    },
+    "program_running": {
+      "path": "Status/ProgramRunning",
+      "kind": "bool",
+      "initial": true,
+      "modes": {
+        "nominal": {
+          "true_probability": 0.98
+        },
+        "tool_wear": {
+          "true_probability": 0.96
+        },
+        "cooling_loss": {
+          "true_probability": 0.85
+        }
+      }
+    },
+    "alarm_active": {
+      "path": "Status/AlarmActive",
+      "kind": "bool",
+      "initial": false,
+      "modes": {
+        "nominal": {
+          "true_probability": 0.01
+        },
+        "tool_wear": {
+          "true_probability": 0.12
+        },
+        "cooling_loss": {
+          "true_probability": 0.65
+        }
+      }
+    },
+    "spindle_temperature": {
+      "path": "Sensors/SpindleTemperature",
+      "kind": "float",
+      "initial": 56.0,
+      "precision": 2,
+      "modes": {
+        "nominal": {
+          "baseline": 56.0,
+          "noise": 2.5,
+          "min": 48.0,
+          "max": 68.0
+        },
+        "tool_wear": {
+          "baseline": 67.0,
+          "drift_per_step": 0.05,
+          "noise": 2.0,
+          "min": 55.0,
+          "max": 83.0
+        },
+        "cooling_loss": {
+          "baseline": 78.0,
+          "drift_per_step": 0.08,
+          "noise": 2.2,
+          "min": 64.0,
+          "max": 100.0
+        }
+      }
+    },
+    "coolant_level": {
+      "path": "Sensors/CoolantLevel",
+      "kind": "float",
+      "initial": 84.0,
+      "precision": 2,
+      "modes": {
+        "nominal": {
+          "baseline": 84.0,
+          "noise": 3.0,
+          "min": 75.0,
+          "max": 100.0
+        },
+        "tool_wear": {
+          "baseline": 76.0,
+          "noise": 4.0,
+          "min": 60.0,
+          "max": 90.0
+        },
+        "cooling_loss": {
+          "baseline": 48.0,
+          "drift_per_step": -0.15,
+          "noise": 4.0,
+          "min": 8.0,
+          "max": 70.0
+        }
+      }
+    },
+    "vibration_level": {
+      "path": "Sensors/VibrationLevel",
+      "kind": "float",
+      "initial": 0.018,
+      "precision": 4,
+      "modes": {
+        "nominal": {
+          "baseline": 0.018,
+          "noise": 0.003,
+          "min": 0.01,
+          "max": 0.03
+        },
+        "tool_wear": {
+          "baseline": 0.032,
+          "drift_per_step": 0.0002,
+          "noise": 0.004,
+          "min": 0.02,
+          "max": 0.05
+        },
+        "cooling_loss": {
+          "baseline": 0.04,
+          "drift_per_step": 0.0002,
+          "noise": 0.004,
+          "min": 0.025,
+          "max": 0.06
+        }
+      }
+    },
+    "feed_rate": {
+      "path": "Sensors/FeedRate",
+      "kind": "float",
+      "initial": 980.0,
+      "precision": 1,
+      "modes": {
+        "nominal": {
+          "baseline": 980.0,
+          "noise": 80.0,
+          "min": 820.0,
+          "max": 1180.0
+        },
+        "tool_wear": {
+          "baseline": 910.0,
+          "noise": 90.0,
+          "min": 700.0,
+          "max": 1040.0
+        },
+        "cooling_loss": {
+          "baseline": 820.0,
+          "noise": 100.0,
+          "min": 600.0,
+          "max": 980.0
+        }
+      }
+    },
+    "spindle_speed": {
+      "path": "Sensors/SpindleSpeed",
+      "kind": "int",
+      "initial": 2800,
+      "modes": {
+        "nominal": {
+          "baseline": 2800.0,
+          "noise": 150.0,
+          "min": 2200.0,
+          "max": 3200.0
+        },
+        "tool_wear": {
+          "baseline": 2550.0,
+          "noise": 120.0,
+          "min": 1900.0,
+          "max": 2900.0
+        },
+        "cooling_loss": {
+          "baseline": 2300.0,
+          "noise": 140.0,
+          "min": 1700.0,
+          "max": 2800.0
+        }
+      }
+    },
+    "axis_load_x": {
+      "path": "Sensors/AxisLoadX",
+      "kind": "float",
+      "initial": 38.0,
+      "precision": 2,
+      "modes": {
+        "nominal": {
+          "baseline": 38.0,
+          "noise": 6.0,
+          "min": 25.0,
+          "max": 52.0
+        },
+        "tool_wear": {
+          "baseline": 46.0,
+          "noise": 7.0,
+          "min": 32.0,
+          "max": 64.0
+        },
+        "cooling_loss": {
+          "baseline": 52.0,
+          "noise": 8.0,
+          "min": 36.0,
+          "max": 72.0
+        }
+      }
+    },
+    "axis_load_y": {
+      "path": "Sensors/AxisLoadY",
+      "kind": "float",
+      "initial": 34.0,
+      "precision": 2,
+      "modes": {
+        "nominal": {
+          "baseline": 34.0,
+          "noise": 5.0,
+          "min": 22.0,
+          "max": 48.0
+        },
+        "tool_wear": {
+          "baseline": 43.0,
+          "noise": 6.0,
+          "min": 30.0,
+          "max": 58.0
+        },
+        "cooling_loss": {
+          "baseline": 49.0,
+          "noise": 7.0,
+          "min": 34.0,
+          "max": 68.0
+        }
+      }
+    },
+    "axis_load_z": {
+      "path": "Sensors/AxisLoadZ",
+      "kind": "float",
+      "initial": 47.0,
+      "precision": 2,
+      "modes": {
+        "nominal": {
+          "baseline": 47.0,
+          "noise": 6.0,
+          "min": 32.0,
+          "max": 60.0
+        },
+        "tool_wear": {
+          "baseline": 57.0,
+          "noise": 7.0,
+          "min": 38.0,
+          "max": 72.0
+        },
+        "cooling_loss": {
+          "baseline": 63.0,
+          "noise": 8.0,
+          "min": 45.0,
+          "max": 80.0
+        }
+      }
+    },
+    "parts_produced": {
+      "path": "Production/PartsProduced",
+      "kind": "counter",
+      "initial": 0,
+      "modes": {
+        "nominal": {
+          "increment_mean": 1.0,
+          "increment_noise": 0.1
+        },
+        "tool_wear": {
+          "increment_mean": 0.9,
+          "increment_noise": 0.1
+        },
+        "cooling_loss": {
+          "increment_mean": 0.6,
+          "increment_noise": 0.2
+        }
+      }
+    },
+    "total_runtime": {
+      "path": "Production/TotalRuntime",
+      "kind": "counter",
+      "initial": 0,
+      "modes": {
+        "nominal": {
+          "increment_mean": 1.0,
+          "increment_noise": 0.0
+        },
+        "tool_wear": {
+          "increment_mean": 1.0,
+          "increment_noise": 0.0
+        },
+        "cooling_loss": {
+          "increment_mean": 1.0,
+          "increment_noise": 0.0
+        }
+      }
+    },
+    "tool_wear": {
+      "path": "Production/ToolWear",
+      "kind": "float",
+      "initial": 5.0,
+      "precision": 2,
+      "modes": {
+        "nominal": {
+          "baseline": 5.0,
+          "drift_per_step": 0.02,
+          "noise": 0.08,
+          "min": 0.0,
+          "max": 40.0
+        },
+        "tool_wear": {
+          "baseline": 35.0,
+          "drift_per_step": 0.08,
+          "noise": 0.2,
+          "min": 20.0,
+          "max": 90.0
+        },
+        "cooling_loss": {
+          "baseline": 68.0,
+          "drift_per_step": 0.09,
+          "noise": 0.25,
+          "min": 40.0,
+          "max": 100.0
+        }
+      }
+    }
+  },
+  "events": [
+    {
+      "start_at": 0,
+      "end_at": 119,
+      "mode": "nominal",
+      "label": "stable_production"
+    },
+    {
+      "start_at": 120,
+      "end_at": 239,
+      "mode": "tool_wear",
+      "label": "progressive_tool_wear"
+    },
+    {
+      "start_at": 240,
+      "end_at": 359,
+      "mode": "cooling_loss",
+      "label": "cooling_system_degradation"
+    }
+  ]
+}

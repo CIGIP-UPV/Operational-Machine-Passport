@@ -1,0 +1,28 @@
+{
+  "name": "robot_joint_wear",
+  "repetitions": 2,
+  "duration_seconds": 160,
+  "warmup_seconds": 20,
+  "range_step_seconds": 5,
+  "env": {
+    "OPCUA_SCENARIO_FILE": "/app/config/scenarios/robot_arm_baseline.json",
+    "ASSET_ID": "robot-01",
+    "ASSET_TYPE": "robot_arm",
+    "OPCUA_PROFILE_PATH": "/app/opcua_exporter/config/profiles/robot.json"
+  },
+  "fault_actions": [
+    {
+      "at_second": 90,
+      "action": "pause_service",
+      "target": "opcua-exporter",
+      "duration_seconds": 8
+    }
+  ],
+  "queries": {
+    "joint_temperature": "asset_sensor_value{signal=\"joint_temperature\"}",
+    "positioning_error": "asset_production_value{signal=\"positioning_error\"}",
+    "arm_current": "asset_energy_value{signal=\"arm_current\"}",
+    "detector_flags_mad": "asset_detector_flag{detector=\"mad\"}",
+    "root_cause_state": "asset_root_cause_state"
+  }
+}

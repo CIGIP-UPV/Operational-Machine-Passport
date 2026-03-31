@@ -3,11 +3,10 @@ networks:
     driver: bridge
 
 volumes:
-    prometheus_data_monitoring: {}
-    grafana_data_monitoring: {}
+  prometheus_data_monitoring: {}
+  grafana_data_monitoring: {}
 
 services:
-
   prometheus:
     image: prom/prometheus:v3.1.0
     container_name: prometheus
@@ -15,19 +14,17 @@ services:
       - ./prometheus:/etc/prometheus
       - prometheus_data_monitoring:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=200h"
+      - "--web.enable-lifecycle"
     restart: unless-stopped
     expose:
-      - 9090
+      - "9090"
     networks:
       - monitor-net-aideas
-
-
 
   nodeexporter:
     image: prom/node-exporter:v1.8.2
@@ -37,20 +34,21 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
     command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
     restart: unless-stopped
     expose:
-      - 9100
+      - "9100"
     networks:
       - monitor-net-aideas
-
 
   cadvisor:
     image: google/cadvisor:canary
     container_name: cadvisor
+    profiles:
+      - linux-monitoring
     platform: linux/amd64
     privileged: true
     devices:
@@ -60,13 +58,11 @@ services:
       - /var/run:/var/run:ro
       - /sys:/sys:ro
       - /var/lib/docker:/var/lib/docker:ro
-      #- /cgroup:/cgroup:ro #doesn't work on MacOS only for Linux
     restart: unless-stopped
     expose:
-      - 8080
+      - "8080"
     networks:
       - monitor-net-aideas
-
 
   grafana:
     image: grafana/grafana:11.5.0
@@ -81,26 +77,36 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     restart: unless-stopped
     expose:
-      - 3000
+      - "3000"
     networks:
       - monitor-net-aideas
-
 
   pushgateway:
     image: prom/pushgateway:v1.11.0
     container_name: pushgateway
     restart: unless-stopped
     expose:
-      - 9091
+      - "9091"
     networks:
       - monitor-net-aideas
 
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0.20
+    container_name: mqtt_broker
+    ports:
+      - "1884:1883"
+    volumes:
+      - ./mqtt-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+    networks:
+      - monitor-net-aideas
 
   caddy:
     image: caddy:2.8.4
     container_name: caddy
     ports:
       - "3000:3000"
+      - "4000:4000"
       - "8080:8080"
       - "9093:9090"
       - "9091:9091"
@@ -115,24 +121,124 @@ services:
       - monitor-net-aideas
 
   opcua-simulator:
-    image:  gitlab-cigip.alc.upv.es:5050/aideas/tools/monitoring/demo-ua:1.0
+    build:
+      context: ./opcua-demo
     container_name: opcua_simulator
+    environment:
+      - OPCUA_SCENARIO_FILE=${OPCUA_SCENARIO_FILE:-/app/config/scenarios/cnc_baseline.json}
+      - GROUND_TRUTH_PATH=${GROUND_TRUTH_PATH:-/data/ground_truth.jsonl}
     ports:
       - "4840:4840"
+    volumes:
+      - ./experiments/results:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 4840), 2); s.close()"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
     restart: always
+    networks:
+      - monitor-net-aideas
+
+  opcua-simulator-cnc-02:
+    build:
+      context: ./opcua-demo
+    container_name: opcua_simulator_cnc_02
+    environment:
+      - OPCUA_SCENARIO_FILE=${OPCUA_SCENARIO_FILE_CNC_02:-/app/config/scenarios/cnc_secondary.json}
+      - GROUND_TRUTH_PATH=${GROUND_TRUTH_PATH_CNC_02:-/data/ground_truth_cnc_02.jsonl}
+    ports:
+      - "4841:4840"
+    volumes:
+      - ./experiments/results:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 4840), 2); s.close()"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: always
+    networks:
+      - monitor-net-aideas
+
+  mqtt-simulator-cnc-01:
+    build:
+      context: ./mqtt-demo
+    container_name: mqtt_simulator_cnc_01
+    environment:
+      - MQTT_SCENARIO_FILE=${MQTT_SCENARIO_FILE:-/app/config/scenarios/cnc_mqtt_baseline.json}
+      - MQTT_BROKER_URL=${MQTT_BROKER_URL:-mqtt://mqtt-broker:1883}
+      - GROUND_TRUTH_PATH=${GROUND_TRUTH_PATH_MQTT_CNC_01:-/data/ground_truth_cnc_mqtt_01.jsonl}
+    volumes:
+      - ./experiments/results:/data
+    restart: always
+    depends_on:
+      - mqtt-broker
     networks:
       - monitor-net-aideas
 
   opcua-exporter:
-    image:  gitlab-cigip.alc.upv.es:5050/aideas/tools/monitoring/exporter-ua:1.0
+    build:
+      context: ./exporter
     container_name: opcua_exporter
+    volumes:
+      - ./analytics/data:/registry:ro
     ports:
       - "9687:9687"
     environment:
-      - OPCUA_ENDPOINT=opc.tcp://opcua-simulator:4840/freeopcua/cnc/
+      - OPCUA_ENDPOINT=${OPCUA_ENDPOINT:-opc.tcp://opcua-simulator:4840/freeopcua/assets/}
+      - EXPORTER_PORT=${EXPORTER_PORT:-9687}
+      - ASSET_ID=${ASSET_ID:-cnc-01}
+      - ASSET_TYPE=${ASSET_TYPE:-cnc}
+      - ASSET_DB_PATH=${ASSET_DB_PATH:-/registry/assets.db}
+      - EXPORTER_MULTI_ASSET_ENABLED=${EXPORTER_MULTI_ASSET_ENABLED:-true}
+      - OPCUA_PROFILE_PATH=${OPCUA_PROFILE_PATH:-/app/opcua_exporter/config/profiles/cnc.json}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9687', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
     restart: always
     depends_on:
       - opcua-simulator
+      - mqtt-broker
     networks:
       - monitor-net-aideas
 
+  analytics:
+    build:
+      context: ./analytics
+    container_name: analytics
+    volumes:
+      - ./experiments/results:/data
+      - ./analytics/data:/registry
+    environment:
+      - PROMETHEUS_URL=${PROMETHEUS_URL:-http://prometheus:9090}
+      - ANALYTICS_PORT=${ANALYTICS_PORT:-9700}
+      - EXPORTER_JOB_NAME=${EXPORTER_JOB_NAME:-opcua_exporter}
+      - GROUND_TRUTH_FILE=${GROUND_TRUTH_PATH:-/data/ground_truth.jsonl}
+      - ASSET_DB_PATH=${ASSET_DB_PATH:-/registry/assets.db}
+    expose:
+      - "9700"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9700/health', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: always
+    depends_on:
+      - prometheus
+      - opcua-exporter
+    networks:
+      - monitor-net-aideas
+
+  ui:
+    build:
+      context: ./ui
+    container_name: ui
+    expose:
+      - "80"
+    restart: unless-stopped
+    depends_on:
+      - analytics
+    networks:
+      - monitor-net-aideas

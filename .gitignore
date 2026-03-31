@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.idea/
+analytics/data/*.db
+analytics/data/*.sqlite
+ui/node_modules/
+ui/dist/
+experiments/results/*
+!experiments/results/.gitkeep

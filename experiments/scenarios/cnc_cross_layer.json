@@ -1,0 +1,35 @@
+{
+  "name": "cnc_cross_layer_baseline",
+  "repetitions": 2,
+  "duration_seconds": 180,
+  "warmup_seconds": 30,
+  "range_step_seconds": 5,
+  "env": {
+    "OPCUA_SCENARIO_FILE": "/app/config/scenarios/cnc_baseline.json",
+    "ASSET_ID": "cnc-01",
+    "ASSET_TYPE": "cnc",
+    "OPCUA_PROFILE_PATH": "/app/opcua_exporter/config/profiles/cnc.json"
+  },
+  "fault_actions": [
+    {
+      "at_second": 45,
+      "action": "restart_service",
+      "target": "opcua-exporter"
+    },
+    {
+      "at_second": 95,
+      "action": "pause_service",
+      "target": "opcua-exporter",
+      "duration_seconds": 10
+    }
+  ],
+  "queries": {
+    "spindle_temperature": "asset_sensor_value{signal=\"spindle_temperature\"}",
+    "coolant_level": "asset_sensor_value{signal=\"coolant_level\"}",
+    "vibration_level": "asset_sensor_value{signal=\"vibration_level\"}",
+    "tool_wear": "asset_maintenance_value{signal=\"tool_wear\"}",
+    "anomaly_rules": "asset_detector_flag{detector=\"rules\"}",
+    "anomaly_mad": "asset_detector_flag{detector=\"mad\"}",
+    "monitoring_confidence": "asset_monitoring_confidence"
+  }
+}

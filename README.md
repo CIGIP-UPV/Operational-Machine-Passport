@@ -1,92 +1,305 @@
-# monitoring
+# Machine Passport
 
+Machine Passport is a multi-protocol industrial observability platform for machine onboarding, live monitoring, anomaly diagnosis, and digital machine passports. It is designed to work with heterogeneous industrial assets through a common semantic model, with **OPC UA** as the primary validation protocol and **MQTT** as the second supported connector. The platform combines machine telemetry, infrastructure observability, semantic normalization, anomaly detection, and a React-based user interface that lets operators register machines, inspect signals, review diagnosis, and maintain a living passport for each asset.
 
+The project is built around three ideas. First, industrial data should be **interoperable**: the diagnosis and passport should not depend on the input protocol, but on normalized signals such as temperature, vibration, feed rate, machine state, or maintenance indicators. Second, observability should be **cross-layer**: the platform correlates process-side anomalies with monitoring-path degradation to distinguish between asset issues and observability issues. Third, machine information should be **persistent and operationally useful**: beyond dashboards, each asset has a digital passport with identity, connectivity, semantic mappings, baseline behavior, components, software, maintenance, compliance, sustainability, and custody records.
 
-## Getting started
+## What the application does
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+At runtime, the platform can:
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- register industrial machines from the UI
+- connect to machines through OPC UA or MQTT
+- test connectivity and run discovery
+- normalize discovered telemetry to a shared semantic model
+- export live machine signals to Prometheus
+- compute anomaly scores with rule-based, z-score, and MAD detectors
+- provide basic explainable diagnosis and cross-layer IT/OT context
+- build and update a living digital machine passport per asset
+- manage multiple assets at once from a single dashboard
 
-## Add your files
+The result is one application serving five roles at the same time:
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+- **machine registry**
+- **industrial connectivity layer**
+- **live monitoring dashboard**
+- **anomaly diagnosis workspace**
+- **digital machine passport system**
 
+## Main capabilities
+
+### 1. Multi-machine registry
+
+The UI includes a registry-first workflow. Users can browse the list of registered machines, add a new one, test its connection, and open its passport and monitoring views. Example assets are seeded automatically for demo purposes:
+
+- `cnc-01` over OPC UA
+- `cnc-02` over OPC UA
+- `cnc-mqtt-01` over MQTT
+
+### 2. Multi-protocol connectivity
+
+The application currently supports:
+
+- **OPC UA**
+- **MQTT**
+
+Each asset stores a generic connection model:
+
+- connection type
+- endpoint or broker
+- protocol-specific configuration
+- connection status
+- last seen timestamp
+- collection mode
+
+This keeps the rest of the system protocol-agnostic.
+
+### 3. Semantic normalization
+
+Signals discovered from OPC UA nodes or MQTT topics are mapped into a common semantic inventory:
+
+- signal key
+- display name
+- category
+- subsystem
+- unit
+- datatype
+- criticality
+- source reference
+
+Mappings can be reviewed and manually corrected from the UI. The passport tracks mapping coverage, active/inactive mappings, manual overrides, and mapping confidence.
+
+### 4. Live monitoring
+
+The `Monitor` workspace provides:
+
+- a diagnosis banner with live confidence and current anomaly context
+- KPI cards for anomaly count, tracked signals, detector votes, and health score
+- `Signals at Risk`
+- `Pipeline State`
+- `Signals Explorer`
+- `Operator Context`
+
+The same UI works for OPC UA and MQTT assets because it consumes the normalized model instead of protocol-specific assumptions.
+
+### 5. Anomaly detection and diagnosis
+
+The analytics service runs three detectors:
+
+- rule-based thresholds
+- rolling z-score
+- rolling MAD
+
+It produces:
+
+- anomaly score per signal
+- detector vote totals
+- monitoring confidence
+- root cause hint
+- evidences for diagnosis
+
+The diagnosis layer also incorporates connector context such as:
+
+- protocol
+- collection mode
+- connector health
+- continuity score
+- freshness
+
+This helps separate:
+
+- asset faults
+- monitoring degradation
+- mixed conditions
+- observability outages
+
+### 6. Digital machine passport
+
+Each asset has a living machine passport with structured sections:
+
+- **Overview**
+- **Semantic**
+- **Technical**
+- **Maintenance**
+- **Compliance**
+- **Sustainability**
+
+The passport currently covers:
+
+- identity and technical nameplate
+- protocol/connectivity context
+- semantic inventory and mappings
+- operational baseline
+- health and diagnosis summary
+- structured maintenance events
+- software and firmware inventory
+- critical components / light BoM
+- linked technical documents
+- compliance certificates
+- access policy and integrity metadata
+- sustainability records
+- ownership / custody history
+
+## Architecture overview
+
+The stack is composed of these main services:
+
+- `opcua-demo/`
+  - OPC UA simulators with reproducible scenarios and ground truth
+- `mqtt-demo/`
+  - MQTT machine simulator with reproducible CNC scenarios
+- `mqtt-broker/`
+  - local Mosquitto broker for the MQTT demo path
+- `exporter/`
+  - industrial semantic exporter for OPC UA and MQTT assets
+- `analytics/`
+  - registry, discovery, passport builder, anomaly detection, and HTTP API
+- `ui/`
+  - React frontend for machine registry, passports, monitor, and diagnose
+- `prometheus/`
+  - scraping and alerting rules
+- `grafana/`
+  - dashboards for infrastructure and telemetry inspection
+- `experiments/`
+  - repeatable experiment runner and evaluation scripts
+- `tests/`
+  - unit and integration checks
+
+## User interface
+
+The current UI is organized into three main areas:
+
+### Machines
+
+This is the parent view for the platform.
+
+It lets you:
+
+- see the list of registered assets
+- add a new machine
+- test connection
+- run discovery
+- review the machine passport
+
+### Monitor
+
+This is the operational view for the selected machine.
+
+It lets you:
+
+- inspect high-risk signals
+- review pipeline health
+- explore live signals
+- open a detailed signal modal
+- inspect connector context and operator notes
+
+### Diagnose
+
+This is the diagnosis and validation workspace.
+
+It lets you:
+
+- inspect evidences
+- review detector outputs
+- analyze diagnosis quality
+- compare scenario ground truth against detected states
+
+## Quick start
+
+Run the complete stack:
+
+```bash
+docker compose up -d --build
 ```
-cd existing_repo
-git remote add origin https://gitlab-cigip.alc.upv.es/aideas/tools/monitoring.git
-git branch -M main
-git push -uf origin main
+
+On Linux hosts where cAdvisor is supported, you can enable the optional profile:
+
+```bash
+docker compose --profile linux-monitoring up -d --build
 ```
 
-## Integrate with your tools
+## Main endpoints
 
-- [ ] [Set up project integrations](https://gitlab-cigip.alc.upv.es/aideas/tools/monitoring/-/settings/integrations)
+- UI: `http://localhost:4000`
+- Grafana: `http://localhost:3000`
+- Prometheus: `http://localhost:9093`
+- Pushgateway: `http://localhost:9091`
+- OPC UA CNC 1: `opc.tcp://localhost:4840/freeopcua/assets/`
+- OPC UA CNC 2: `opc.tcp://localhost:4841/freeopcua/assets/`
+- MQTT broker on host: `mqtt://localhost:1884`
+- MQTT topic root: `factory/cnc-mqtt-01/#`
 
-## Collaborate with your team
+Default credentials for protected HTTP endpoints:
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+- user: `admin`
+- password: `admin`
 
-## Test and Deploy
+## Built-in demo assets
 
-Use the built-in continuous integration in GitLab.
+The platform auto-registers demo assets so the UI is populated from the first start:
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+- `cnc-01`
+  - OPC UA
+  - `opc.tcp://opcua-simulator:4840/freeopcua/assets/`
+- `cnc-02`
+  - OPC UA
+  - `opc.tcp://opcua-simulator-cnc-02:4840/freeopcua/assets/`
+- `cnc-mqtt-01`
+  - MQTT
+  - `mqtt://mqtt-broker:1883`
+  - topic root `factory/cnc-mqtt-01`
 
-***
+For external clients running on the host:
 
-# Editing this README
+- use `opc.tcp://localhost:4840/freeopcua/assets/` and `opc.tcp://localhost:4841/freeopcua/assets/` for OPC UA
+- use `mqtt://localhost:1884` for MQTT
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## Development notes
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Useful commands:
 
-## Name
-Choose a self-explaining name for your project.
+```bash
+python3 -m unittest discover -s tests
+```
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+```bash
+docker compose ps
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+```bash
+docker compose logs -f analytics opcua-exporter ui
+```
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+```bash
+npm run build --prefix ui
+```
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## Research and publication angle
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+This repository is also structured as a research artifact for:
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+- unified IT/OT observability
+- machine interoperability
+- semantic industrial telemetry
+- early anomaly detection
+- explainable diagnosis
+- digital machine passports
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+The same codebase can therefore be used as:
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+- a live demo platform
+- an experimental benchmark environment
+- a machine registry and passport prototype
+- a multi-protocol observability testbed
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+## Current scope
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+The platform is already strong as an **operational machine passport** and **observability system**. It is especially useful for:
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+- onboarding assets
+- validating semantic mappings
+- monitoring industrial behavior
+- demonstrating diagnosis over OPC UA and MQTT
+- studying how machine telemetry and monitoring-path health interact
 
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Future work can keep extending interoperability and lifecycle coverage, but the current repository already provides an end-to-end, running implementation of a multi-machine, multi-protocol monitoring and passport platform.

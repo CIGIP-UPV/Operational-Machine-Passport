@@ -1,41 +1,40 @@
 global:
-  scrape_interval:     15s
+  scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-      monitor: 'docker-host-aideas'
+    monitor: "docker-host-aideas"
 
 rule_files:
   - "alert.rules"
 
 scrape_configs:
-  - job_name: 'nodeexporter'
+  - job_name: "nodeexporter"
     scrape_interval: 5s
     static_configs:
-      - targets: ['nodeexporter:9100']
+      - targets: ["nodeexporter:9100"]
 
-  - job_name: 'cadvisor'
+  - job_name: "cadvisor"
     scrape_interval: 5s
     static_configs:
-      - targets: ['cadvisor:8080']
+      - targets: ["cadvisor:8080"]
 
-  - job_name: 'prometheus'
+  - job_name: "prometheus"
     scrape_interval: 10s
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ["localhost:9090"]
 
-  - job_name: 'pushgateway'
+  - job_name: "pushgateway"
     scrape_interval: 10s
     honor_labels: true
     static_configs:
-      - targets: ['pushgateway:9091']
+      - targets: ["pushgateway:9091"]
 
-  - job_name: "opcua"
+  - job_name: "opcua_exporter"
+    scrape_interval: 5s
     static_configs:
-      - targets: ["opcua-exporter:9686"]
+      - targets: ["opcua-exporter:9687"]
 
-#alerting:
-#  alertmanagers:
-#  - scheme: http
-#    static_configs:
-#    - targets:
-#      - 'alertmanager:9093'
+  - job_name: "analytics"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["analytics:9700"]

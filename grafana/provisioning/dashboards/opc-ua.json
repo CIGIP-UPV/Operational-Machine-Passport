@@ -9,14 +9,14 @@
   "templating": {
     "list": [
       {
-        "name": "display_name",
+        "name": "signal",
         "type": "query",
         "datasource": {
           "type": "prometheus",
-          "uid": "PROMETHEUS_DS_UID"
+          "uid": "prometheus"
         },
         "refresh": 2,
-        "query": "label_values(opcua_node_value, display_name)",
+        "query": "label_values(asset_sensor_value, signal)",
         "multi": true,
         "includeAll": false,
         "sort": 1
@@ -26,18 +26,18 @@
   "panels": [
     {
       "type": "timeseries",
-      "title": "$display_name",
+      "title": "$signal",
       "id": 1,
-      "repeat": "display_name",
+      "repeat": "signal",
       "datasource": {
         "type": "prometheus",
-        "uid": "PROMETHEUS_DS_UID"
+        "uid": "prometheus"
       },
       "targets": [
         {
-          "expr": "opcua_node_value{display_name=\"$display_name\"}",
+          "expr": "asset_sensor_value{signal=\"$signal\"} or asset_production_value{signal=\"$signal\"} or asset_maintenance_value{signal=\"$signal\"} or asset_status_value{signal=\"$signal\"} or asset_alarm_value{signal=\"$signal\"}",
           "refId": "A",
-          "legendFormat": "{{nodeid}}"
+          "legendFormat": "{{asset_id}}/{{signal}}"
         }
       ],
       "fieldConfig": {

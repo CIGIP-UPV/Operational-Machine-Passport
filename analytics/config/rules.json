@@ -1,0 +1,50 @@
+{
+  "zscore_window_size": 20,
+  "zscore_threshold": 2.8,
+  "zscore_min_history": 5,
+  "mad_window_size": 20,
+  "mad_threshold": 3.5,
+  "mad_min_history": 5,
+  "rules": [
+    {
+      "pattern": "temperature",
+      "warning_high": 72.0,
+      "critical_high": 82.0
+    },
+    {
+      "pattern": "coolant",
+      "warning_low": 55.0,
+      "critical_low": 35.0
+    },
+    {
+      "pattern": "vibration",
+      "warning_high": 0.035,
+      "critical_high": 0.05
+    },
+    {
+      "pattern": "tool_wear",
+      "warning_high": 60.0,
+      "critical_high": 85.0
+    },
+    {
+      "pattern": "axis_load",
+      "warning_high": 60.0,
+      "critical_high": 75.0
+    },
+    {
+      "pattern": "joint_temperature",
+      "warning_high": 68.0,
+      "critical_high": 78.0
+    },
+    {
+      "pattern": "positioning_error",
+      "warning_high": 1.5,
+      "critical_high": 3.0
+    },
+    {
+      "pattern": "arm_current",
+      "warning_high": 12.0,
+      "critical_high": 16.0
+    }
+  ]
+}

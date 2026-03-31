@@ -1,0 +1,86 @@
+{
+  "asset_type": "generic_opcua_asset",
+  "default_category": "signal",
+  "rules": [
+    {
+      "pattern": "Temperature",
+      "category": "sensor",
+      "signal": "temperature",
+      "subsystem": "thermal",
+      "unit": "celsius",
+      "criticality": "high"
+    },
+    {
+      "pattern": "Coolant",
+      "category": "sensor",
+      "signal": "coolant_level",
+      "subsystem": "thermal",
+      "unit": "percent",
+      "criticality": "high"
+    },
+    {
+      "pattern": "Vibration",
+      "category": "sensor",
+      "signal": "vibration",
+      "subsystem": "mechanical",
+      "unit": "g",
+      "criticality": "high"
+    },
+    {
+      "pattern": "FeedRate",
+      "category": "production",
+      "signal": "feed_rate",
+      "subsystem": "process",
+      "unit": "mm_min",
+      "criticality": "medium"
+    },
+    {
+      "pattern": "SpindleSpeed",
+      "category": "production",
+      "signal": "spindle_speed",
+      "subsystem": "mechanical",
+      "unit": "rpm",
+      "criticality": "medium"
+    },
+    {
+      "pattern": "AxisLoad",
+      "category": "sensor",
+      "signal": "axis_load",
+      "subsystem": "axis",
+      "unit": "percent",
+      "criticality": "medium"
+    },
+    {
+      "pattern": "ToolWear",
+      "category": "maintenance",
+      "signal": "tool_wear",
+      "subsystem": "tooling",
+      "unit": "percent",
+      "criticality": "high"
+    },
+    {
+      "pattern": "PartsProduced|TotalRuntime",
+      "category": "production",
+      "signal": "throughput",
+      "subsystem": "process",
+      "unit": "count",
+      "criticality": "medium"
+    },
+    {
+      "pattern": "Alarm|Emergency",
+      "category": "alarm",
+      "signal": "alarm_state",
+      "subsystem": "safety",
+      "unit": "boolean",
+      "criticality": "high"
+    },
+    {
+      "pattern": "ProgramRunning|OperatingMode",
+      "category": "status",
+      "signal": "operating_state",
+      "subsystem": "control",
+      "unit": "state",
+      "criticality": "medium"
+    }
+  ]
+}

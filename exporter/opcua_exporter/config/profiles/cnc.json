@@ -1,0 +1,94 @@
+{
+  "asset_type": "cnc",
+  "default_category": "signal",
+  "rules": [
+    {
+      "pattern": "SpindleTemperature",
+      "category": "sensor",
+      "signal": "spindle_temperature",
+      "subsystem": "spindle",
+      "unit": "celsius",
+      "criticality": "high"
+    },
+    {
+      "pattern": "CoolantLevel",
+      "category": "sensor",
+      "signal": "coolant_level",
+      "subsystem": "cooling",
+      "unit": "percent",
+      "criticality": "high"
+    },
+    {
+      "pattern": "VibrationLevel",
+      "category": "sensor",
+      "signal": "vibration_level",
+      "subsystem": "spindle",
+      "unit": "g",
+      "criticality": "high"
+    },
+    {
+      "pattern": "FeedRate",
+      "category": "production",
+      "signal": "feed_rate",
+      "subsystem": "process",
+      "unit": "mm_min",
+      "criticality": "medium"
+    },
+    {
+      "pattern": "SpindleSpeed",
+      "category": "production",
+      "signal": "spindle_speed",
+      "subsystem": "spindle",
+      "unit": "rpm",
+      "criticality": "medium"
+    },
+    {
+      "pattern": "AxisLoadX|AxisLoadY|AxisLoadZ",
+      "category": "sensor",
+      "signal": "axis_load",
+      "subsystem": "axis",
+      "unit": "percent",
+      "criticality": "medium"
+    },
+    {
+      "pattern": "ToolWear",
+      "category": "maintenance",
+      "signal": "tool_wear",
+      "subsystem": "tooling",
+      "unit": "percent",
+      "criticality": "high"
+    },
+    {
+      "pattern": "PartsProduced",
+      "category": "production",
+      "signal": "parts_produced",
+      "subsystem": "process",
+      "unit": "count",
+      "criticality": "medium"
+    },
+    {
+      "pattern": "TotalRuntime",
+      "category": "production",
+      "signal": "runtime",
+      "subsystem": "process",
+      "unit": "seconds",
+      "criticality": "low"
+    },
+    {
+      "pattern": "AlarmActive",
+      "category": "alarm",
+      "signal": "alarm_active",
+      "subsystem": "safety",
+      "unit": "boolean",
+      "criticality": "high"
+    },
+    {
+      "pattern": "ProgramRunning",
+      "category": "status",
+      "signal": "program_running",
+      "subsystem": "control",
+      "unit": "boolean",
+      "criticality": "medium"
+    }
+  ]
+}

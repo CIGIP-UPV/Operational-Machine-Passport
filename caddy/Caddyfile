@@ -2,6 +2,19 @@
     reverse_proxy grafana:3000  
 }
 
+:4000 {
+    handle /api/* {
+        reverse_proxy analytics:9700
+    }
+    handle /health {
+        reverse_proxy analytics:9700
+    }
+    handle /metrics {
+        reverse_proxy analytics:9700
+    }
+    reverse_proxy ui:80
+}
+
 :8080 {
     basicauth /* {
         {$ADMIN_USER} {$ADMIN_PASSWORD_HASH}
