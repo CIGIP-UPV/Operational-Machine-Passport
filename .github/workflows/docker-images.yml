@@ -1,0 +1,153 @@
+name: Build and publish Docker images
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/**"
+      - "simulators/**"
+      - ".github/workflows/docker-images.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/**"
+      - "simulators/**"
+      - ".github/workflows/docker-images.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: docker-images-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      has_changes: ${{ steps.matrix.outputs.has_changes }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detect changed image contexts
+        if: github.event_name != 'workflow_dispatch'
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            analytics:
+              - "apps/analytics/**"
+              - ".github/workflows/docker-images.yml"
+            industrial_exporter:
+              - "apps/industrial-exporter/**"
+              - ".github/workflows/docker-images.yml"
+            ui:
+              - "apps/ui/**"
+              - ".github/workflows/docker-images.yml"
+            opcua_simulator:
+              - "simulators/opcua/**"
+              - ".github/workflows/docker-images.yml"
+            mqtt_simulator:
+              - "simulators/mqtt/**"
+              - ".github/workflows/docker-images.yml"
+
+      - name: Build image matrix
+        id: matrix
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ANALYTICS_CHANGED: ${{ steps.filter.outputs.analytics }}
+          INDUSTRIAL_EXPORTER_CHANGED: ${{ steps.filter.outputs.industrial_exporter }}
+          UI_CHANGED: ${{ steps.filter.outputs.ui }}
+          OPCUA_SIMULATOR_CHANGED: ${{ steps.filter.outputs.opcua_simulator }}
+          MQTT_SIMULATOR_CHANGED: ${{ steps.filter.outputs.mqtt_simulator }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          images = [
+              {"image_name": "analytics", "context": "./apps/analytics", "flag": "ANALYTICS_CHANGED"},
+              {"image_name": "industrial-exporter", "context": "./apps/industrial-exporter", "flag": "INDUSTRIAL_EXPORTER_CHANGED"},
+              {"image_name": "ui", "context": "./apps/ui", "flag": "UI_CHANGED"},
+              {"image_name": "opcua-simulator", "context": "./simulators/opcua", "flag": "OPCUA_SIMULATOR_CHANGED"},
+              {"image_name": "mqtt-simulator", "context": "./simulators/mqtt", "flag": "MQTT_SIMULATOR_CHANGED"},
+          ]
+
+          event_name = os.environ.get("EVENT_NAME", "")
+          if event_name == "workflow_dispatch":
+              selected = [{"image_name": image["image_name"], "context": image["context"]} for image in images]
+          else:
+              selected = [
+                  {"image_name": image["image_name"], "context": image["context"]}
+                  for image in images
+                  if os.environ.get(image["flag"], "false") == "true"
+              ]
+
+          output_path = Path(os.environ["GITHUB_OUTPUT"])
+          with output_path.open("a", encoding="utf-8") as fh:
+              fh.write(f"matrix={json.dumps(selected)}\n")
+              fh.write(f"has_changes={'true' if selected else 'false'}\n")
+          PY
+
+  docker-images:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.detect-changes.outputs.matrix) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare image coordinates
+        id: prep
+        env:
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          echo "owner_lc=${REPO_OWNER,,}" >> "$GITHUB_OUTPUT"
+          echo "repo_lc=${REPO_NAME,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ steps.prep.outputs.owner_lc }}/${{ steps.prep.outputs.repo_lc }}-${{ matrix.image_name }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=sha-
+
+      - name: Build and publish image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.context }}/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
