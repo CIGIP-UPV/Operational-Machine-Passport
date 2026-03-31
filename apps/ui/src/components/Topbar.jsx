@@ -22,9 +22,9 @@ export default function Topbar({ assetOptions, selectedAssetId, onChangeAsset, c
 
   return (
     <header className="topbar">
-      <div className="logo" aria-label="OPC Observe">
-        <span>OPC</span>
-        <span className="logo__secondary">Observe</span>
+      <div className="logo" aria-label="Operational Machine Passport">
+        <span>Operational</span>
+        <span className="logo__secondary">Machine Passport</span>
       </div>
 
       <div className="topbar-divider" />
