@@ -4,197 +4,181 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Operational Machine Passport</title>
-    <meta
-      name="description"
-      content="Operational Machine Passport is a multi-protocol platform for machine registry, live monitoring, explainable diagnosis and living machine passports."
-    />
+    <meta name="description" content="A multi-protocol platform for industrial observability and operational machine passports." />
     <link rel="stylesheet" href="./assets/site.css" />
   </head>
   <body>
+
     <header class="site-header">
       <div class="header-inner">
-        <div class="brand-mark">CIGIP</div>
+        <a href="/" class="brand">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span class="brand-text">C I G I P</span>
+        </a>
         <nav class="site-nav">
-          <a href="#what">What it is</a>
-          <a href="#views">Views</a>
-          <a href="#quick-start">Quick Start</a>
+          <a href="#docker">Docker Images</a>
           <a href="https://github.com/CIGIP-UPV/Operational-Machine-Passport" target="_blank" rel="noreferrer">GitHub</a>
         </nav>
       </div>
     </header>
 
     <main>
+
+      <!-- Hero -->
       <section class="hero">
         <div class="hero-inner">
-          <div class="hero-copy">
-            <p class="eyebrow">Operational documentation, observability and diagnosis</p>
-            <h1>Operational Machine Passport</h1>
-            <p class="hero-text">
-              A machine-centered platform that registers industrial assets, ingests telemetry over OPC UA and MQTT,
-              builds living machine passports, and explains anomalies in a way operators can actually use.
-            </p>
-            <div class="hero-actions">
-              <a class="primary-link" href="https://github.com/CIGIP-UPV/Operational-Machine-Passport" target="_blank" rel="noreferrer">
-                Open Repository
-              </a>
-              <a class="secondary-link" href="#views">See the application</a>
-            </div>
-          </div>
-
-          <div class="hero-panel">
-            <div class="hero-panel-card">
-              <span class="hero-panel-label">What makes it different</span>
-              <ul>
-                <li>Machine registry and protocol onboarding in one place</li>
-                <li>Operational passport generated from live machine data</li>
-                <li>Explainable anomaly diagnosis with connector awareness</li>
-                <li>Same platform for CNC validation over OPC UA and MQTT</li>
-              </ul>
-            </div>
+          <p class="hero-sub">Operational Machine Passport</p>
+          <h1><strong>Multi-Protocol Platform</strong><br/>for Industrial Observability</h1>
+          <div class="hero-badge">Research Centre for Production Management and Engineering (CIGIP)</div>
+          <div class="hero-actions">
+            <a class="btn btn--primary" href="https://github.com/CIGIP-UPV/Operational-Machine-Passport" target="_blank" rel="noreferrer">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              View Source Repository
+            </a>
+            <a class="btn btn--secondary" href="#docker">Docker Images</a>
           </div>
         </div>
       </section>
 
-      <section class="content-section" id="what">
-        <div class="section-header">
-          <span class="section-kicker">What it is</span>
-          <h2>A platform built around the machine, not just the dashboard</h2>
-          <p>
-            The goal is simple: connect a machine, understand its signals, monitor its behavior, and keep all of that context
-            inside a living passport that remains useful for operation, maintenance and diagnosis.
-          </p>
-        </div>
-
-        <div class="intro-grid">
-          <article class="feature-card">
-            <span class="feature-accent"></span>
-            <h3>Register machines</h3>
-            <p>Keep a persistent registry of assets, machine profiles and protocol-specific connection details.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-accent"></span>
-            <h3>Monitor live behavior</h3>
-            <p>Track machine health, risky signals and pipeline quality through one operational workspace.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-accent"></span>
-            <h3>Explain anomalies</h3>
-            <p>Combine rules, rolling statistics and connector health to make diagnosis more understandable.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="band-section">
-        <div class="band-inner band-inner--single">
-          <div class="band-copy">
-            <span class="section-kicker section-kicker--light">Why the passport matters</span>
-            <h2>It is not only a UI. It is a living machine record.</h2>
-            <p>
-              The passport brings together identity, connectivity, semantic mappings, monitoring context, diagnosis,
-              maintenance data and other lifecycle information so that the machine can be understood as a whole.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section class="content-section" id="views">
-        <div class="section-header">
-          <span class="section-kicker">Application views</span>
-          <h2>Three core screens that show the platform end to end</h2>
-          <p>
-            These views capture the central idea of the tool: one place to browse machines, inspect behavior and understand anomalies.
-          </p>
-        </div>
-
-        <div class="showcase-list">
-          <article class="showcase-card">
-            <div class="showcase-media">
-              <img src="./assets/images/machines-passport.png" alt="Machine Passport screen showing CNC Machine 02 and semantic coverage" />
+      <!-- Platform Components -->
+      <section class="section" id="components">
+        <div class="section-inner">
+          <h2 class="section-title">Platform Components</h2>
+          <div class="divider"></div>
+          <div class="cards-grid">
+            <div class="card">
+              <span class="card-name">analytics</span>
+              <p>Anomaly detection, machine passport builder and REST API.</p>
             </div>
-            <div class="showcase-copy">
-              <span class="screen-card__label">Machines</span>
-              <h3>Machine registry and passport view</h3>
-              <p>
-                Each machine has its own operational passport with health, baseline, semantic coverage and machine-specific
-                lifecycle sections. This is the starting point for understanding the asset.
-              </p>
+            <div class="card">
+              <span class="card-name">industrial-exporter</span>
+              <p>Multi-protocol ingestion for OPC UA and MQTT with semantic mapping.</p>
             </div>
-          </article>
-
-          <article class="showcase-card showcase-card--reverse">
-            <div class="showcase-media">
-              <img src="./assets/images/monitor-view.png" alt="Monitor screen with priority signals, pipeline state and signal explorer" />
+            <div class="card">
+              <span class="card-name">ui</span>
+              <p>React interface for machine registry, monitoring and diagnosis.</p>
             </div>
-            <div class="showcase-copy">
-              <span class="screen-card__label">Monitor</span>
-              <h3>Live monitoring focused on what matters</h3>
-              <p>
-                The monitoring view prioritizes active anomalies, risky signals and pipeline health instead of overwhelming the operator
-                with raw telemetry. It is designed to answer what needs attention right now.
-              </p>
-            </div>
-          </article>
-
-          <article class="showcase-card">
-            <div class="showcase-media">
-              <img src="./assets/images/diagnose-view.png" alt="Diagnosis screen with connector quality, evidence ledger and detector matrix" />
-            </div>
-            <div class="showcase-copy">
-              <span class="screen-card__label">Diagnose</span>
-              <h3>Explainable diagnosis with protocol context</h3>
-              <p>
-                Diagnosis combines signal-level detector outputs with protocol and connector quality, making it easier to
-                distinguish between a machine fault, an observability issue, or a mixed condition.
-              </p>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="content-section" id="quick-start">
-        <div class="section-header">
-          <span class="section-kicker">Quick Start</span>
-          <h2>Run the project locally</h2>
-          <p>
-            The repository contains the UI, analytics service, industrial exporter and demo simulators for both OPC UA and MQTT.
-          </p>
-        </div>
-
-        <div class="quick-grid">
-          <div class="terminal-card">
-            <div class="terminal-card__chrome">
-              <span></span><span></span><span></span>
-            </div>
-            <pre><code>git clone https://github.com/CIGIP-UPV/Operational-Machine-Passport.git
-cd Operational-Machine-Passport
-docker compose up -d --build
-
-# UI         http://localhost:4000
-# Grafana    http://localhost:3000
-# Prometheus http://localhost:9093</code></pre>
-          </div>
-
-          <div class="stack-card">
-            <h3>Project scope</h3>
-            <p>
-              The stack includes a machine registry, machine passport, analytics engine, multi-protocol ingestion and a public-facing
-              interface for monitoring and diagnosis.
-            </p>
-            <div class="mini-points">
-              <span>OPC UA and MQTT connectivity</span>
-              <span>Machine-centered monitoring workflow</span>
-              <span>Living operational passport</span>
+            <div class="card">
+              <span class="card-name">simulators</span>
+              <p>Reproducible CNC simulators over OPC UA and MQTT.</p>
             </div>
           </div>
         </div>
       </section>
+
+      <!-- Band -->
+      <section class="band">
+        <div class="band-inner">
+          <div class="band-col">
+            <h2><strong>Living Machine Passport</strong><br/>for Industrial Assets</h2>
+          </div>
+          <div class="band-col">
+            <p><strong>Integrates observability and digital passport</strong> into a single persistent artefact per machine. Covers identity, connectivity, semantic mappings, monitoring, diagnosis and lifecycle traceability.</p>
+            <p><strong>Validated with CNC simulators</strong> over OPC UA and MQTT in controlled, reproducible scenarios.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Screenshots -->
+      <section class="section">
+        <div class="section-inner">
+          <h2 class="section-title">Application Views</h2>
+          <div class="divider"></div>
+          <div class="screenshots-grid">
+            <figure class="screenshot">
+              <img src="./assets/images/machines-passport.png" alt="Machine passport view" loading="lazy" />
+              <figcaption>Machines &mdash; Registry and passport</figcaption>
+            </figure>
+            <figure class="screenshot">
+              <img src="./assets/images/monitor-view.png" alt="Monitoring dashboard" loading="lazy" />
+              <figcaption>Monitor &mdash; Live signals and pipeline health</figcaption>
+            </figure>
+            <figure class="screenshot">
+              <img src="./assets/images/diagnose-view.png" alt="Diagnosis workspace" loading="lazy" />
+              <figcaption>Diagnose &mdash; Evidence and detector outputs</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- Docker Images -->
+      <section class="section section--alt" id="docker">
+        <div class="section-inner">
+          <h2 class="section-title">Docker Images</h2>
+          <div class="divider"></div>
+          <div class="image-list">
+            <div class="image-row">
+              <code>ghcr.io/cigip-upv/operational-machine-passport-analytics</code>
+              <span class="tag">latest</span>
+            </div>
+            <div class="image-row">
+              <code>ghcr.io/cigip-upv/operational-machine-passport-industrial-exporter</code>
+              <span class="tag">latest</span>
+            </div>
+            <div class="image-row">
+              <code>ghcr.io/cigip-upv/operational-machine-passport-ui</code>
+              <span class="tag">latest</span>
+            </div>
+            <div class="image-row">
+              <code>ghcr.io/cigip-upv/operational-machine-passport-opcua-simulator</code>
+              <span class="tag">latest</span>
+            </div>
+            <div class="image-row">
+              <code>ghcr.io/cigip-upv/operational-machine-passport-mqtt-simulator</code>
+              <span class="tag">latest</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Start -->
+      <section class="section" id="quick-start">
+        <div class="section-inner">
+          <h2 class="section-title">Quick Start</h2>
+          <div class="divider"></div>
+          <div class="terminal">
+            <div class="terminal__chrome">
+              <span class="terminal__label">TERMINAL</span>
+              <div class="terminal__dots"><span></span><span></span><span></span></div>
+            </div>
+            <pre><code><span class="c"># Clone and run</span>
+<span class="k">git clone</span> https://github.com/CIGIP-UPV/Operational-Machine-Passport.git
+<span class="k">cd</span> Operational-Machine-Passport
+<span class="k">docker compose</span> up -d --build
+
+<span class="c"># UI           http://localhost:4000</span>
+<span class="c"># Grafana      http://localhost:3000</span>
+<span class="c"># Prometheus   http://localhost:9093</span></code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Repository Endpoint -->
+      <section class="section section--alt">
+        <div class="section-inner">
+          <h2 class="section-title">Repository Endpoint</h2>
+          <div class="divider"></div>
+          <div class="endpoint-row">
+            <span class="endpoint-label">URL</span>
+            <code>https://github.com/CIGIP-UPV/Operational-Machine-Passport</code>
+          </div>
+        </div>
+      </section>
+
     </main>
 
     <footer class="site-footer">
       <div class="footer-inner">
-        <span>CIGIP-UPV · Operational Machine Passport</span>
-        <a href="https://github.com/CIGIP-UPV/Operational-Machine-Passport" target="_blank" rel="noreferrer">Source repository</a>
+        <span><strong>CIGIP-UPV</strong> &middot; Centro de Investigaci&oacute;n en Gesti&oacute;n e Ingenier&iacute;a de Producci&oacute;n</span>
+        <div class="footer-links">
+          <a href="https://github.com/CIGIP-UPV/Operational-Machine-Passport" target="_blank" rel="noreferrer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+            GitHub
+          </a>
+          <a href="https://cigip.webs.upv.es" target="_blank" rel="noreferrer">More about us</a>
+        </div>
       </div>
     </footer>
+
   </body>
 </html>
