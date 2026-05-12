@@ -1,0 +1,293 @@
+
+networks:
+  aideas-network:
+    driver: bridge
+  monitor-net-aideas:
+    driver: bridge
+
+volumes:
+  prometheus_data_monitoring: {}
+  grafana_data_monitoring: {}
+  certs: {}
+  vhostd: {}
+  html: {}
+
+services:
+  # ------------------------------------------------------------------
+  # Reverse proxy con HTTPS automático (Let's Encrypt)
+  # ------------------------------------------------------------------
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - certs:/etc/nginx/certs
+      - vhostd:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - ./cors.conf:/etc/nginx/vhost.d/cors.conf
+      - ./custom.conf:/etc/nginx/conf.d/custom.conf
+    labels:
+      - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy
+    environment:
+      - PROXY_READ_TIMEOUT=3600
+    networks:
+      - aideas-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
+
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: letsencrypt
+    restart: always
+    environment:
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+      - DEFAULT_EMAIL=mmateo@cigip.upv.es
+      # Para pruebas: descomenta esta línea y emite certificados de staging
+      # - ACME_CA_URI=https://acme-staging-v02.api.letsencrypt.org/directory
+    volumes:
+      - certs:/etc/nginx/certs:rw
+      - vhostd:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - aideas-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
+
+  # ------------------------------------------------------------------
+  # Caddy: agregador interno (UI + /api -> analytics) en un solo vhost
+  # Se publica al exterior vía nginx-proxy a https://mpassport.cigip.upv.es
+  # ------------------------------------------------------------------
+  caddy:
+    image: caddy:2.8.4
+    container_name: caddy
+    restart: unless-stopped
+    expose:
+      - "80"
+    environment:
+      - VIRTUAL_HOST=mpassport.cigip.upv.es
+      - VIRTUAL_PORT=80
+      - LETSENCRYPT_HOST=mpassport.cigip.upv.es
+      - LETSENCRYPT_EMAIL=mmateo@cigip.upv.es
+    volumes:
+      - ./infra/caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+    networks:
+      - aideas-network        # para que nginx-proxy lo descubra
+      - monitor-net-aideas    # para hablar con ui y analytics
+    depends_on:
+      - ui
+      - analytics
+
+  # ------------------------------------------------------------------
+  # Núcleo de la plataforma
+  # ------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    container_name: prometheus
+    volumes:
+      - ./infra/prometheus:/etc/prometheus
+      - prometheus_data_monitoring:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=200h"
+      - "--web.enable-lifecycle"
+    restart: unless-stopped
+    expose:
+      - "9090"
+    networks:
+      - monitor-net-aideas
+
+  nodeexporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: nodeexporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    restart: unless-stopped
+    expose:
+      - "9100"
+    networks:
+      - monitor-net-aideas
+
+  grafana:
+    image: grafana/grafana:11.5.0
+    container_name: grafana
+    volumes:
+      - grafana_data_monitoring:/var/lib/grafana
+      - ./infra/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./infra/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    expose:
+      - "3000"
+    networks:
+      - monitor-net-aideas
+
+  pushgateway:
+    image: prom/pushgateway:v1.11.0
+    container_name: pushgateway
+    restart: unless-stopped
+    expose:
+      - "9091"
+    networks:
+      - monitor-net-aideas
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0.20
+    container_name: mqtt_broker
+    volumes:
+      - ./infra/mqtt-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+    networks:
+      - monitor-net-aideas
+
+  # ------------------------------------------------------------------
+  # Simuladores OPC UA / MQTT (sin puertos publicados al host)
+  # ------------------------------------------------------------------
+  opcua-simulator:
+    build:
+      context: ./simulators/opcua
+    container_name: opcua_simulator
+    environment:
+      - OPCUA_SCENARIO_FILE=${OPCUA_SCENARIO_FILE:-/app/config/scenarios/cnc_baseline.json}
+      - GROUND_TRUTH_PATH=${GROUND_TRUTH_PATH:-/data/ground_truth.jsonl}
+    expose:
+      - "4840"
+    volumes:
+      - ./experiments/results:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 4840), 2); s.close()"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: always
+    networks:
+      - monitor-net-aideas
+
+  opcua-simulator-cnc-02:
+    build:
+      context: ./simulators/opcua
+    container_name: opcua_simulator_cnc_02
+    environment:
+      - OPCUA_SCENARIO_FILE=${OPCUA_SCENARIO_FILE_CNC_02:-/app/config/scenarios/cnc_secondary.json}
+      - GROUND_TRUTH_PATH=${GROUND_TRUTH_PATH_CNC_02:-/data/ground_truth_cnc_02.jsonl}
+    expose:
+      - "4840"
+    volumes:
+      - ./experiments/results:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 4840), 2); s.close()"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: always
+    networks:
+      - monitor-net-aideas
+
+  mqtt-simulator-cnc-01:
+    build:
+      context: ./simulators/mqtt
+    container_name: mqtt_simulator_cnc_01
+    environment:
+      - MQTT_SCENARIO_FILE=${MQTT_SCENARIO_FILE:-/app/config/scenarios/cnc_mqtt_baseline.json}
+      - MQTT_BROKER_URL=${MQTT_BROKER_URL:-mqtt://mqtt-broker:1883}
+      - GROUND_TRUTH_PATH=${GROUND_TRUTH_PATH_MQTT_CNC_01:-/data/ground_truth_cnc_mqtt_01.jsonl}
+    volumes:
+      - ./experiments/results:/data
+    restart: always
+    depends_on:
+      - mqtt-broker
+    networks:
+      - monitor-net-aideas
+
+  # ------------------------------------------------------------------
+  # Exporter + Analytics + UI
+  # ------------------------------------------------------------------
+  opcua-exporter:
+    build:
+      context: ./apps/industrial-exporter
+    container_name: opcua_exporter
+    volumes:
+      - ./apps/analytics/data:/registry:ro
+    expose:
+      - "9687"
+    environment:
+      - OPCUA_ENDPOINT=${OPCUA_ENDPOINT:-opc.tcp://opcua-simulator:4840/freeopcua/assets/}
+      - EXPORTER_PORT=${EXPORTER_PORT:-9687}
+      - ASSET_ID=${ASSET_ID:-cnc-01}
+      - ASSET_TYPE=${ASSET_TYPE:-cnc}
+      - ASSET_DB_PATH=${ASSET_DB_PATH:-/registry/assets.db}
+      - EXPORTER_MULTI_ASSET_ENABLED=${EXPORTER_MULTI_ASSET_ENABLED:-true}
+      - OPCUA_PROFILE_PATH=${OPCUA_PROFILE_PATH:-/app/opcua_exporter/config/profiles/cnc.json}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9687', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: always
+    depends_on:
+      - opcua-simulator
+      - mqtt-broker
+    networks:
+      - monitor-net-aideas
+
+  analytics:
+    build:
+      context: ./apps/analytics
+    container_name: analytics
+    volumes:
+      - ./experiments/results:/data
+      - ./apps/analytics/data:/registry
+    environment:
+      - PROMETHEUS_URL=${PROMETHEUS_URL:-http://prometheus:9090}
+      - ANALYTICS_PORT=${ANALYTICS_PORT:-9700}
+      - EXPORTER_JOB_NAME=${EXPORTER_JOB_NAME:-opcua_exporter}
+      - GROUND_TRUTH_FILE=${GROUND_TRUTH_PATH:-/data/ground_truth.jsonl}
+      - ASSET_DB_PATH=${ASSET_DB_PATH:-/registry/assets.db}
+    expose:
+      - "9700"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9700/health', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: always
+    depends_on:
+      - prometheus
+      - opcua-exporter
+    networks:
+      - monitor-net-aideas
+
+  ui:
+    build:
+      context: ./apps/ui
+    container_name: ui
+    expose:
+      - "80"
+    restart: unless-stopped
+    depends_on:
+      - analytics
+    networks:
+      - monitor-net-aideas

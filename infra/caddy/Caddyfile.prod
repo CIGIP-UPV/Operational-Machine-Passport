@@ -1,0 +1,15 @@
+# Caddyfile de producción: un único vhost HTTP detrás de nginx-proxy.
+# nginx-proxy termina TLS para mpassport.cigip.upv.es y reenvía a Caddy:80.
+
+:80 {
+    handle /api/* {
+        reverse_proxy analytics:9700
+    }
+    handle /health {
+        reverse_proxy analytics:9700
+    }
+    handle /metrics {
+        reverse_proxy analytics:9700
+    }
+    reverse_proxy ui:80
+}
