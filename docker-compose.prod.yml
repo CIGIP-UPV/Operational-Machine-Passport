@@ -1,92 +1,40 @@
 
 networks:
-  aideas-network:
-    driver: bridge
   monitor-net-aideas:
     driver: bridge
 
 volumes:
   prometheus_data_monitoring: {}
   grafana_data_monitoring: {}
-  certs: {}
-  vhostd: {}
-  html: {}
+  caddy_data: {}
+  caddy_config: {}
 
 services:
   # ------------------------------------------------------------------
-  # Reverse proxy con HTTPS automático (Let's Encrypt)
-  # ------------------------------------------------------------------
-  nginx-proxy:
-    image: jwilder/nginx-proxy
-    container_name: nginx-proxy
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-      - certs:/etc/nginx/certs
-      - vhostd:/etc/nginx/vhost.d
-      - html:/usr/share/nginx/html
-      - ./cors.conf:/etc/nginx/vhost.d/cors.conf
-      - ./custom.conf:/etc/nginx/conf.d/custom.conf
-    labels:
-      - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy
-    environment:
-      - PROXY_READ_TIMEOUT=3600
-    networks:
-      - aideas-network
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "500k"
-        max-file: "50"
-
-  letsencrypt:
-    image: jrcs/letsencrypt-nginx-proxy-companion
-    container_name: letsencrypt
-    restart: always
-    environment:
-      - NGINX_PROXY_CONTAINER=nginx-proxy
-      - DEFAULT_EMAIL=mmateo@cigip.upv.es
-      # Para pruebas: descomenta esta línea y emite certificados de staging
-      # - ACME_CA_URI=https://acme-staging-v02.api.letsencrypt.org/directory
-    volumes:
-      - certs:/etc/nginx/certs:rw
-      - vhostd:/etc/nginx/vhost.d
-      - html:/usr/share/nginx/html
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - aideas-network
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "500k"
-        max-file: "50"
-
-  # ------------------------------------------------------------------
-  # Caddy: agregador interno (UI + /api -> analytics) en un solo vhost
-  # Se publica al exterior vía nginx-proxy a https://mpassport.cigip.upv.es
+  # Caddy: termina TLS con Let's Encrypt y sirve UI + /api en un vhost
+  # https://mpassport.cigip.upv.es
   # ------------------------------------------------------------------
   caddy:
     image: caddy:2.8.4
     container_name: caddy
     restart: unless-stopped
-    expose:
-      - "80"
-    environment:
-      - VIRTUAL_HOST=mpassport.cigip.upv.es
-      - VIRTUAL_PORT=80
-      - LETSENCRYPT_HOST=mpassport.cigip.upv.es
-      - LETSENCRYPT_EMAIL=mmateo@cigip.upv.es
+    ports:
+      - "80:80"
+      - "443:443"
     volumes:
       - ./infra/caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
     networks:
-      - aideas-network        # para que nginx-proxy lo descubra
-      - monitor-net-aideas    # para hablar con ui y analytics
+      - monitor-net-aideas
     depends_on:
       - ui
       - analytics
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
 
   # ------------------------------------------------------------------
   # Núcleo de la plataforma
