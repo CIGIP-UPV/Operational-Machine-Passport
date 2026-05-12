@@ -15,7 +15,7 @@ services:
   # https://mpassport.cigip.upv.es
   # ------------------------------------------------------------------
   caddy:
-    image: caddy:2.8.4
+    image: caddy:2.10
     container_name: caddy
     restart: unless-stopped
     ports:
@@ -30,6 +30,12 @@ services:
     depends_on:
       - ui
       - analytics
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:80"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     logging:
       driver: "json-file"
       options:
