@@ -102,24 +102,34 @@ def run_replication(prom_url: str, win_literal: str, win_seconds: int,
     El protocolo se distingue por asset_id: cualquier asset_id que case con
     `mqtt_pattern` (regex RE2) se considera MQTT; el resto, OPC UA.
 
-    Throughput se calcula a partir de la interpretación gauge de
-    asset_exporter_asset_scraped_nodes_total (nodos leídos en el último
-    ciclo, NO contador acumulado), dividido por el intervalo de scrape de
-    Prometheus (`scrape_interval_s`, default 5 s).
+    Throughput se calcula contando las series de señales semánticas
+    publicadas por el exporter (asset_*_value: signal, sensor, status,
+    production, energy, maintenance, alarm) por protocolo, dividido por
+    el intervalo de scrape de Prometheus (`scrape_interval_s`, default 5 s).
+    Cada serie corresponde a un dato actualizado por ciclo de scrape.
     """
 
-    selectors = {
+    # Para latencia: filtro en asset_id sobre la métrica scrape_duration.
+    # Para throughput: filtro en asset_id sobre las gauges de señal,
+    # contando el número de series distintas que cumplen el patrón.
+    latency_sel = {
         "opcua": f'{{asset_id!~"{mqtt_pattern}"}}',
         "mqtt":  f'{{asset_id=~"{mqtt_pattern}"}}',
     }
+    signal_sel = {
+        "opcua": f'{{__name__=~"asset_.+_value", asset_id!~"{mqtt_pattern}"}}',
+        "mqtt":  f'{{__name__=~"asset_.+_value", asset_id=~"{mqtt_pattern}"}}',
+    }
 
     rows: list[dict] = []
-    for proto, sel in selectors.items():
+    for proto in ("opcua", "mqtt"):
+        lsel = latency_sel[proto]
+        ssel = signal_sel[proto]
         queries = {
-            "mean_s":   f"avg by () (avg_over_time(asset_exporter_asset_scrape_duration_seconds{sel}[{win_literal}]))",
-            "p95_s":    f"avg by () (quantile_over_time(0.95, asset_exporter_asset_scrape_duration_seconds{sel}[{win_literal}]))",
-            "p99_s":    f"avg by () (quantile_over_time(0.99, asset_exporter_asset_scrape_duration_seconds{sel}[{win_literal}]))",
-            "tput_sps": f"sum by () (avg_over_time(asset_exporter_asset_scraped_nodes_total{sel}[{win_literal}])) / {scrape_interval_s}",
+            "mean_s":   f"avg by () (avg_over_time(asset_exporter_asset_scrape_duration_seconds{lsel}[{win_literal}]))",
+            "p95_s":    f"avg by () (quantile_over_time(0.95, asset_exporter_asset_scrape_duration_seconds{lsel}[{win_literal}]))",
+            "p99_s":    f"avg by () (quantile_over_time(0.99, asset_exporter_asset_scrape_duration_seconds{lsel}[{win_literal}]))",
+            "tput_sps": f"count({ssel}) / {scrape_interval_s}",
         }
         row = {
             "replication": rep_idx,
