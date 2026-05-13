@@ -95,11 +95,17 @@ def scalar(result: list[dict]) -> float:
 
 def run_replication(prom_url: str, win_literal: str, win_seconds: int,
                     rep_idx: int, eval_time: int,
-                    mqtt_pattern: str = ".*mqtt.*") -> list[dict]:
+                    mqtt_pattern: str = ".*mqtt.*",
+                    scrape_interval_s: float = 5.0) -> list[dict]:
     """Calcula las métricas de Table 6 para una ventana terminada en eval_time.
 
     El protocolo se distingue por asset_id: cualquier asset_id que case con
     `mqtt_pattern` (regex RE2) se considera MQTT; el resto, OPC UA.
+
+    Throughput se calcula a partir de la interpretación gauge de
+    asset_exporter_asset_scraped_nodes_total (nodos leídos en el último
+    ciclo, NO contador acumulado), dividido por el intervalo de scrape de
+    Prometheus (`scrape_interval_s`, default 5 s).
     """
 
     selectors = {
@@ -110,10 +116,10 @@ def run_replication(prom_url: str, win_literal: str, win_seconds: int,
     rows: list[dict] = []
     for proto, sel in selectors.items():
         queries = {
-            "mean_s": f"avg by () (avg_over_time(asset_exporter_asset_scrape_duration_seconds{sel}[{win_literal}]))",
-            "p95_s":  f"avg by () (quantile_over_time(0.95, asset_exporter_asset_scrape_duration_seconds{sel}[{win_literal}]))",
-            "p99_s":  f"avg by () (quantile_over_time(0.99, asset_exporter_asset_scrape_duration_seconds{sel}[{win_literal}]))",
-            "tput_sps": f"sum by () (rate(asset_exporter_asset_scraped_nodes_total{sel}[{win_literal}]))",
+            "mean_s":   f"avg by () (avg_over_time(asset_exporter_asset_scrape_duration_seconds{sel}[{win_literal}]))",
+            "p95_s":    f"avg by () (quantile_over_time(0.95, asset_exporter_asset_scrape_duration_seconds{sel}[{win_literal}]))",
+            "p99_s":    f"avg by () (quantile_over_time(0.99, asset_exporter_asset_scrape_duration_seconds{sel}[{win_literal}]))",
+            "tput_sps": f"sum by () (avg_over_time(asset_exporter_asset_scraped_nodes_total{sel}[{win_literal}])) / {scrape_interval_s}",
         }
         row = {
             "replication": rep_idx,
@@ -259,6 +265,10 @@ def main() -> int:
     ap.add_argument("--mqtt-pattern", default=".*mqtt.*",
                     help="Regex RE2 que identifica asset_ids del protocolo MQTT; "
                          "el resto se considera OPC UA (default: .*mqtt.*)")
+    ap.add_argument("--scrape-interval", type=float, default=5.0,
+                    help="Intervalo de scrape de Prometheus en segundos, usado "
+                         "para convertir scraped_nodes (gauge) en throughput "
+                         "(default: 5.0)")
     args = ap.parse_args()
 
     win_s, win_literal = parse_window(args.window)
@@ -308,7 +318,8 @@ def main() -> int:
               f"(end={time.strftime('%H:%M:%S', time.localtime(t))})…")
         try:
             all_rows.extend(run_replication(args.prom_url, win_literal, win_s,
-                                            i + 1, t, args.mqtt_pattern))
+                                            i + 1, t, args.mqtt_pattern,
+                                            args.scrape_interval))
         except Exception as e:
             print(f"[!] Replication {i+1} failed: {e}", file=sys.stderr)
 
