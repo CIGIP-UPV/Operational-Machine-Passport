@@ -94,12 +94,21 @@ def scalar(result: list[dict]) -> float:
 # ----------------------------- experimento -------------------------------- #
 
 def run_replication(prom_url: str, win_literal: str, win_seconds: int,
-                    rep_idx: int, eval_time: int) -> list[dict]:
-    """Calcula las métricas de Table 6 para una ventana terminada en eval_time."""
+                    rep_idx: int, eval_time: int,
+                    mqtt_pattern: str = ".*mqtt.*") -> list[dict]:
+    """Calcula las métricas de Table 6 para una ventana terminada en eval_time.
+
+    El protocolo se distingue por asset_id: cualquier asset_id que case con
+    `mqtt_pattern` (regex RE2) se considera MQTT; el resto, OPC UA.
+    """
+
+    selectors = {
+        "opcua": f'{{asset_id!~"{mqtt_pattern}"}}',
+        "mqtt":  f'{{asset_id=~"{mqtt_pattern}"}}',
+    }
 
     rows: list[dict] = []
-    for proto in ("opcua", "mqtt"):
-        sel = f'{{asset_type="{proto}"}}'
+    for proto, sel in selectors.items():
         queries = {
             "mean_s": f"avg by () (avg_over_time(asset_exporter_asset_scrape_duration_seconds{sel}[{win_literal}]))",
             "p95_s":  f"avg by () (quantile_over_time(0.95, asset_exporter_asset_scrape_duration_seconds{sel}[{win_literal}]))",
@@ -247,6 +256,9 @@ def main() -> int:
                     help="Fichero CSV de salida")
     ap.add_argument("--out-tex", default="ingestion_table_filled.tex",
                     help="Snippet LaTeX con valores rellenados")
+    ap.add_argument("--mqtt-pattern", default=".*mqtt.*",
+                    help="Regex RE2 que identifica asset_ids del protocolo MQTT; "
+                         "el resto se considera OPC UA (default: .*mqtt.*)")
     args = ap.parse_args()
 
     win_s, win_literal = parse_window(args.window)
@@ -266,6 +278,27 @@ def main() -> int:
               file=sys.stderr)
         return 2
 
+    # Descubrir qué asset_ids hay y clasificarlos por protocolo
+    import re as _re
+    ids_result = prom_query(args.prom_url,
+                            "group by (asset_id) (asset_exporter_asset_scrape_success)",
+                            now)
+    all_ids = sorted(r["metric"].get("asset_id", "") for r in ids_result)
+    rx = _re.compile(args.mqtt_pattern)
+    mqtt_ids  = [a for a in all_ids if rx.fullmatch(a)]
+    opcua_ids = [a for a in all_ids if not rx.fullmatch(a)]
+    print(f"[i] OPC UA assets ({len(opcua_ids)}): {', '.join(opcua_ids) or '(none)'}")
+    print(f"[i] MQTT  assets ({len(mqtt_ids)}): {', '.join(mqtt_ids) or '(none)'}")
+    if not opcua_ids and not mqtt_ids:
+        print("[!] No asset_ids found at all. Aborting.", file=sys.stderr)
+        return 2
+    if not opcua_ids:
+        print("[!] Warning: no OPC UA asset_ids matched. "
+              "Comprueba --mqtt-pattern.", file=sys.stderr)
+    if not mqtt_ids:
+        print("[!] Warning: no MQTT asset_ids matched. "
+              "Comprueba --mqtt-pattern.", file=sys.stderr)
+
     all_rows: list[dict] = []
     for i in range(args.replications):
         # ventanas no solapadas, en orden cronológico
@@ -274,7 +307,8 @@ def main() -> int:
         print(f"[i] Replication {i+1}/{args.replications} "
               f"(end={time.strftime('%H:%M:%S', time.localtime(t))})…")
         try:
-            all_rows.extend(run_replication(args.prom_url, win_literal, win_s, i + 1, t))
+            all_rows.extend(run_replication(args.prom_url, win_literal, win_s,
+                                            i + 1, t, args.mqtt_pattern))
         except Exception as e:
             print(f"[!] Replication {i+1} failed: {e}", file=sys.stderr)
 
